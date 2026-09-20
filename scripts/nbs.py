@@ -90,7 +90,7 @@ def encode(arrangement, title='', profile='game', tps=50):
     def string(text):
         raw=text.encode('ascii' if profile=='game' else 'utf-8');put('i',len(raw));stream.write(raw)
     put('HBBHH',0,5,16,length,len(layers))
-    for text in (title,'NBS Music Toolkit',arrangement.get('original_author',''),'Layer-volume dynamics; no sustain emulation'):string(text)
+    for text in (title,'NBS Music Skill',arrangement.get('original_author',''),'Layer-volume dynamics; no sustain emulation'):string(text)
     put('HBBBiiiii',round(tps*100),0,10,4,0,0,0,len(notes),0);string('');put('BBH',0,0,0)
     last_tick=-1;last_layer=-1
     for n in sorted(notes,key=lambda n:(n['tick'],n['layer'])):
