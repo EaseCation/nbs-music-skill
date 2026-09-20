@@ -1,0 +1,8 @@
+{
+  "offset": 0,
+  "tail": 2,
+  "rules": [
+    {"select":{"source":"Keyboard"},"instrument":10,"role":"candidate-lead","gain":0.8,"reason":"Example only: verify actual melody against WAV before adopting"},
+    {"select":{"source":"Bass"},"instrument":1,"role":"bass","gain":0.65,"reason":"Example only: verify source and pitch"}
+  ]
+}

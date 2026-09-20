@@ -1,0 +1,10 @@
+{
+  "schema": "suno-nbs-arrangement/1",
+  "duration": 6,
+  "events": [
+    {"id":"demo-1","source":"Keyboard","role":"lead","time":0.5,"pitch":72,"instrument":10,"volume":70,"pan":100},
+    {"id":"demo-2","source":"Keyboard","role":"lead","time":1.0,"pitch":76,"instrument":10,"volume":75,"pan":100},
+    {"id":"demo-3","source":"Synth","role":"sparkle","time":1.5,"pitch":84,"instrument":7,"volume":25,"pan":110},
+    {"id":"demo-4","source":"Bass","role":"bass","time":0.5,"pitch":48,"instrument":1,"volume":60,"pan":100}
+  ]
+}

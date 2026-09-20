@@ -1,0 +1,8 @@
+{
+  "name": "suno-nbs-skill",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Reusable NBS authoring tools and a browser-only review player",
+  "scripts": {"test": "node --test tests/*.test.js"},
+  "devDependencies": {"jsdom": "26.1.0", "web-audio-engine": "0.13.4"}
+}

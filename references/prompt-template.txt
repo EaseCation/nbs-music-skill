@@ -1,0 +1,5 @@
+Instrumental music for {setting}. Theme: {theme}.
+Emotional arc: {arc}.
+A memorable short melodic motif, clear rhythmic pulse, deliberate rests, and expressive call-and-response. Rich but separated instrumentation: banjo and iron xylophone share the foreground; bells and chimes add brief high-register sparkle; restrained piano figures and soft guitar support the harmony; plucked bass, dry kick, light snare and clicks keep the groove. Pling appears only as a controlled accent. Build intensity through rhythmic activity, register and orchestration, then resolve cleanly.
+Every musical idea should remain understandable as discrete struck or plucked notes with natural decay. Avoid dependence on sustained notes. No imposed two-octave range restriction.
+Exclusions: vocals, choir, sustained string pads, legato strings, ambient drones, long held synth beds, smeared attacks, excessive reverb wash, guitar-dominated lead.
