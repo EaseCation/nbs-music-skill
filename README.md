@@ -6,14 +6,13 @@
 
 ## 试听工具
 
-生成一次包含本机音色采样的HTML，之后直接双击打开、导入任意受支持的NBS即可。没有音频后端，没有预先生成的分轨MP3，没有AI分轨复核界面。
+已内置16种音符盒音色。直接打开 `web/index.html`，或生成单文件HTML后导入NBS即可。没有音频后端，没有预先生成的分轨MP3，没有AI分轨复核界面。
 
 ```bash
-python3 scripts/toolkit.py soundpack --index /path/assets/indexes/INDEX.json --assets /path/assets -o local/soundpack.json
-python3 scripts/toolkit.py build-web --pack local/soundpack.json -o dist/nbs-player.html
+python3 scripts/toolkit.py build-web -o dist/nbs-player.html
 ```
 
-不提交Minecraft采样或用户歌曲；生成结果放在Git忽略的local/dist中。详细边界见 [web说明](references/web.md)。
+内置采样的来源与归属见 `web/SAMPLES.md`；用户歌曲与生成结果放在Git忽略的local/dist中。详细边界见 [web说明](references/web.md)。
 
 ## 用作技能
 

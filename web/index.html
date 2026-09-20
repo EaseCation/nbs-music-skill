@@ -1,14 +1,22 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NBS Studio · 音符盒试听</title><link rel="stylesheet" href="style.css"></head>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>音乐盒试听集</title><link rel="stylesheet" href="style.css"></head>
 <body><main>
-<header><div><p class="eyebrow">SUNO → NOTE BLOCK STUDIO</p><h1>听清每一层。</h1><p>导入 NBS，直接在浏览器播放、拆分声部与对比版本。</p></div><label class="button primary">＋ 导入 NBS<input id="files" type="file" accept=".nbs,.json" multiple></label></header>
-<section class="setup"><label class="button">载入音色包<input id="pack" type="file" accept=".json"></label><span id="pack-state">尚未载入采样 · 请导入本机生成的音色包</span><label>播放规则 <select id="profile"><option value="game">游戏兼容（层音量）</option><option value="nbs">完整 NBS 力度与微调</option></select></label></section>
-<div id="status" role="status">文件仅在本机浏览器处理，不会上传。</div>
-<section class="transport"><div class="song-line"><select id="songs" aria-label="当前曲目"><option>请导入 NBS</option></select><label>对比 <select id="compare" aria-label="对比曲目"><option value="">未选择</option></select></label><button id="ab" disabled>切换 A / B</button></div>
-<h2 id="title">把你的音乐带进来</h2><p id="stats">支持 NBS v0–v5 · 不折叠音域 · 保留自然衰减</p>
-<div class="play-line"><button id="play" disabled>播放</button><output id="clock">0:00 / 0:00</output><input id="seek" type="range" min="0" max="1" value="0" step="0.01" aria-label="播放进度"><label>总音量 <input id="volume" type="range" min="0" max="1" step="0.01" value="1" aria-label="总音量"></label><span id="volume-value">100%</span></div>
-<canvas id="roll" width="1200" height="180" aria-label="音符时间轴"></canvas>
-<div class="actions"><button id="download" disabled>下载当前 NBS</button><button id="export" disabled>导出当前声部 WAV</button><span id="peak"></span></div></section>
-<section class="mixer"><div class="mixer-head"><h2>声部</h2><select id="group" aria-label="分组方式"><option value="instrument">按音色</option><option value="layer">按 NBS 层</option></select><input id="search" placeholder="筛选声部" aria-label="筛选声部"><button id="reset">全部恢复</button></div><p class="hint">独奏／静音保持原始音量，不单独归一化。层数量不代表原始乐器数量。</p><div id="tracks"><p>导入后自动列出音色与实际存储层。</p></div></section>
-<footer>无后端 · 无上传 · 本机采样。普通 NBS 不包含原始 AI 分轨；可同时导入匹配的 .nbs.json 编配记录以查看语义声部。NBS 循环信息保留，试听按单次播放。</footer>
-</main><script src="nbs.js"></script><script src="audio.js"></script><script src="app.js"></script></body></html>
+<header><h1>音乐盒试听集</h1><label class="button primary">导入 NBS <span>＋</span><input id="files" type="file" accept=".nbs,.json" multiple></label></header>
+<div class="workspace"><aside><div id="song-count" class="section-label">曲目</div><nav id="song-list" aria-label="选择曲目"><p class="empty">导入 NBS 开始试听</p></nav><select id="songs" aria-label="当前曲目" hidden></select></aside>
+<section class="main-panel">
+<div class="track-head"><div><div id="track-number" class="eyebrow">— / —</div><h2 id="title">尚未选择曲目</h2></div><span class="grain" aria-hidden="true">✦</span></div>
+<div class="stats" id="stats"><div><span>时长</span><strong id="duration">—</strong></div><div><span>音色</span><strong id="instruments">—</strong></div><div><span>音符</span><strong id="notes">—</strong></div><div><span>层数</span><strong id="layers">—</strong></div></div>
+<div id="modes" class="modes" aria-label="选择试听声部"><button disabled>音符盒全曲</button></div>
+<div class="player"><div class="transport"><button id="play" disabled aria-label="播放">▶</button><div class="timeblock"><output id="clock">0:00 / 0:00</output><small id="listening">音符盒全曲</small></div><div class="comparison"><select id="compare" aria-label="对比曲目"><option value="">选择对比版本…</option></select><button id="ab" disabled>切换 A / B</button></div></div>
+<input id="seek" type="range" min="0" max="1" value="0" step="0.01" aria-label="播放进度">
+<div class="player-bottom"><label>试听音量 <input id="volume" type="range" min="0" max="1" step="0.01" value="1" aria-label="总音量"><span id="volume-value">100%</span></label><div class="actions"><button id="download" disabled>本曲 NBS ↗</button><button id="export" disabled>当前声部 WAV ↗</button></div></div></div>
+<div id="status" role="status" hidden></div><span id="peak"></span>
+<div class="timeline-head"><h3>音色时间轴</h3><span>点击任意位置跳转</span></div><canvas id="roll" width="1200" height="180" aria-label="各音色活动时间轴"></canvas>
+<p class="caption">切换声部保留播放位置，使用全曲中的实际音量。</p>
+<div class="details"><details id="track-details"><summary>音量与层次 <span>按需查看和调整试听声部</span></summary>
+<div class="mixer-head"><select id="group" aria-label="分组方式"><option value="instrument">按音色</option><option value="layer">按 NBS 层</option></select><input id="search" placeholder="筛选声部" aria-label="筛选声部"><button id="reset">恢复全曲</button></div>
+<div class="track-columns" aria-hidden="true"><span>声部</span><span>音符 / 层音量</span><span>参与播放</span><span>单独试听</span></div><div id="tracks"><p class="empty">导入后自动列出音色与实际存储层。</p></div>
+<p class="caption">“只听”每次选择一个声部；勾选“参与播放”可自由组合。切换分组后恢复全曲。</p></details>
+<details><summary>播放设置</summary><div class="setup"><label>播放规则 <select id="profile"><option value="game">游戏兼容（层音量）</option><option value="nbs">完整 NBS 力度与微调</option></select></label><span id="pack-state">内置音色加载中…</span><label class="button">更换音色包<input id="pack" type="file" accept=".json"></label></div></details></div>
+</section></div><footer>内置 16 种音符盒音色 · 本地处理，无需上传</footer>
+</main><script src="soundpack.js"></script><script src="nbs.js"></script><script src="audio.js"></script><script src="app.js"></script></body></html>

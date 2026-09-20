@@ -189,6 +189,7 @@ def build(args):
     html=(ROOT/'web/index.html').read_text()
     html=html.replace('<link rel="stylesheet" href="style.css">','<style>'+(ROOT/'web/style.css').read_text()+'</style>')
     html=html.replace('<script src="nbs.js"></script>','<script>window.BOOT='+initial+';</script>\n<script>'+(ROOT/'web/nbs.js').read_text()+'</script>')
+    html=html.replace('<script src="soundpack.js"></script>', '' if pack else '<script>'+(ROOT/'web/soundpack.js').read_text()+'</script>')
     for name in ('audio.js','app.js'):html=html.replace(f'<script src="{name}"></script>','<script>'+(ROOT/'web'/name).read_text()+'</script>')
     output=Path(args.output);output.parent.mkdir(parents=True,exist_ok=True);output.write_text(html)
     print(f'Built standalone player: {output} ({output.stat().st_size} bytes)')

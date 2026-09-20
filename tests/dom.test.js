@@ -1,8 +1,8 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),engine=require('web-audio-engine'),{JSDOM}=require('jsdom');
 function setup(){
  const root=path.join(__dirname,'../web');let html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- for(const name of ['nbs.js','audio.js','app.js'])html=html.replace(`<script src="${name}"></script>`,`<script>${fs.readFileSync(path.join(root,name),'utf8')}</script>`);
- const dom=new JSDOM(html,{runScripts:'dangerously',url:'https://test.invalid',beforeParse(window){window.TextDecoder=TextDecoder;window.AudioContext=engine.RenderingAudioContext;window.OfflineAudioContext=engine.OfflineAudioContext;window.HTMLCanvasElement.prototype.getContext=()=>({clearRect(){},fillRect(){}});}});
+ for(const name of ['soundpack.js','nbs.js','audio.js','app.js'])html=html.replace(`<script src="${name}"></script>`,`<script>${(name==='soundpack.js'?'':fs.readFileSync(path.join(root,name),'utf8'))}</script>`);
+ const dom=new JSDOM(html,{runScripts:'dangerously',url:'https://test.invalid',beforeParse(window){window.TextDecoder=TextDecoder;window.AudioContext=engine.RenderingAudioContext;window.OfflineAudioContext=engine.OfflineAudioContext;window.HTMLCanvasElement.prototype.getContext=()=>({clearRect(){},fillRect(){},fillText(){}});}});
  return dom;
 }
 test('empty standalone DOM boots with no network or pretend playback',()=>{const dom=setup();try{assert.equal(dom.window.document.querySelector('#play').disabled,true);assert.equal(dom.window.document.querySelector('#tracks').textContent.includes('导入'),true);assert.equal(dom.window.document.querySelectorAll('script[src]').length,0);}finally{dom.window.close();}});
@@ -15,4 +15,10 @@ test('loaded songs group correctly and AB preserves seek while resetting solo',a
  assert.equal(w.document.querySelector('#title').textContent,'Test B');assert.equal(w.eval('player.current()'),3);
  w.document.querySelector('#group').value='layer';w.document.querySelector('#group').dispatchEvent(new w.Event('change'));await new Promise(r=>setImmediate(r));assert.match(w.document.querySelector('#tracks').textContent,/lead/);
  w.document.querySelector('[aria-label="独奏 lead"]').click();await new Promise(r=>setImmediate(r));assert.equal(w.eval('player.predicate(player.song.notes[1])'),false);
+ w.document.querySelector('[aria-label="独奏 bass"]').click();await new Promise(r=>setImmediate(r));assert.equal(w.eval('player.predicate(player.song.notes[0])'),false);assert.equal(w.eval('player.predicate(player.song.notes[1])'),true);
+ w.document.querySelector('[aria-label="参与播放 lead"]').click();await new Promise(r=>setImmediate(r));assert.equal(w.eval('player.predicate(player.song.notes[0])'),true);assert.equal(w.eval('player.predicate(player.song.notes[1])'),true);
+ const modes=()=>[...w.document.querySelectorAll('#modes button')];
+ modes().find(b=>b.textContent==='班卓琴').click();await new Promise(r=>setImmediate(r));assert.equal(w.eval('player.predicate(player.song.notes[1])'),false);
+ modes().find(b=>b.textContent==='低音提琴').click();await new Promise(r=>setImmediate(r));assert.equal(w.eval('player.predicate(player.song.notes[0])'),false);assert.equal(w.document.querySelectorAll('#modes .active').length,1);assert.equal(w.eval('player.current()'),3);
+ assert.equal(w.document.querySelector('#track-details').open,false);assert.equal(w.document.querySelectorAll('#song-list .song').length,2);
  }finally{dom.window.close();}});

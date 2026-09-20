@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),player=new NBSAudio.Player(),library=[];
 let selected=-1,groupType='instrument',solo=new Set(),muted=new Set(),rows=[],pair=null,busy=false;
 const format=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`;
-function status(text,error=false){$('status').textContent=text;$('status').classList.toggle('error',error);}
+function status(text,error=false){$('status').textContent=text;$('status').hidden=!text;$('status').classList.toggle('error',error);}
 function attempt(fn){return async(...args)=>{try{await fn(...args);}catch(error){status(error.message,true);}};}
 function option(value,text){const el=document.createElement('option');el.value=value;el.textContent=text;return el;}
 function groupId(n){return groupType==='layer'?String(n.layer):groupType==='role'?(n.role||'未标注'):String(n.instrument);}
@@ -11,35 +11,67 @@ function predicate(n){const id=groupId(n);return (!solo.size||solo.has(id))&&!mu
 function enable(){const loaded=selected>=0;$('play').disabled=!loaded||!player.bank.size;$('download').disabled=!loaded;$('export').disabled=!loaded||!player.bank.size;$('ab').disabled=!loaded||$('compare').value==='';}
 function refreshLists(){
  $('songs').replaceChildren(...library.map((x,i)=>option(i,x.name)));$('compare').replaceChildren(option('','未选择'),...library.map((x,i)=>option(i,x.name)));
- $('songs').value=String(selected);
+ $('songs').value=String(selected);renderSongList();
+}
+function renderSongList(){
+ $('song-count').textContent=`曲目 / ${String(library.length).padStart(2,'0')}`;
+ $('song-list').replaceChildren(...library.map((item,index)=>{
+  const button=document.createElement('button');button.className='song'+(index===selected?' active':'');button.setAttribute('aria-current',index===selected?'true':'false');
+  const disc=document.createElement('span');disc.className='disc';disc.setAttribute('aria-hidden','true');
+  const body=document.createElement('span'),name=document.createElement('b'),detail=document.createElement('small');name.textContent=item.song.title||item.name;
+  detail.textContent=`${String(index+1).padStart(2,'0')} · ${format(item.song.duration)} · ${new Set(item.song.notes.map(n=>n.instrument)).size} 种音色`;
+  body.append(name,detail);button.append(disc,body);button.onclick=attempt(async()=>{pair=null;await select(index);});return button;
+ }));
+}
+function renderModes(){
+ if(!player.song)return;const choices=[{id:null,name:'音符盒全曲'},...NBS.groups(player.song,'instrument')];
+ $('modes').replaceChildren(...choices.map(row=>{
+  const button=document.createElement('button');button.textContent=row.name;
+  const active=row.id===null?!solo.size&&!muted.size:groupType==='instrument'&&solo.size===1&&solo.has(row.id)&&!muted.size;
+  button.className=active?'active':'';button.setAttribute('aria-pressed',String(active));
+  button.onclick=attempt(async()=>{groupType='instrument';$('group').value=groupType;solo.clear();muted.clear();if(row.id!==null)solo.add(row.id);await player.filter(predicate);renderTracks();draw();});return button;
+ }));
+ const activeRows=NBS.groups(player.song,groupType).filter(row=>row.notes.some(predicate));
+ $('listening').textContent=!solo.size&&!muted.size?'音符盒全曲':activeRows.length===1?`只听 · ${activeRows[0].name}`:activeRows.length?`混音 · ${activeRows.length} 个声部`:'全部静音';
 }
 async function select(index,keep=false){
  if(!library[index])return;const running=player.playing;selected=index;solo.clear();muted.clear();player.setSong(library[index].song,keep);player.predicate=predicate;
  $('songs').value=String(index);$('title').textContent=library[index].song.title||library[index].name;
- const song=player.song;$('stats').textContent=`${song.notes.length.toLocaleString()} 个音符 · ${song.layers.length} 层 · ${new Set(song.notes.map(n=>n.instrument)).size} 种音色 · ${song.tempo} tick/s · ${NBS.duplicates(song)} 组同刻同音重复`;
+ const song=player.song;$('duration').textContent=format(song.duration);$('instruments').textContent=new Set(song.notes.map(n=>n.instrument)).size+' 种';$('notes').textContent=song.notes.length.toLocaleString();$('layers').textContent=song.layers.length.toLocaleString();$('track-number').textContent=`${String(index+1).padStart(2,'0')} / ${String(library.length).padStart(2,'0')}`;renderSongList();
  const hasRoles=song.notes.some(n=>n.role);$('group').replaceChildren(option('instrument','按音色'),option('layer','按 NBS 层'),...(hasRoles?[option('role','按语义声部')]:[]));
  if(groupType==='role'&&!hasRoles)groupType='instrument';$('group').value=groupType;
  $('seek').max=song.duration;$('peak').textContent='';renderTracks();enable();draw();if(running)await player.play();
 }
 function renderTracks(){
  if(!player.song)return;rows=NBS.groups(player.song,groupType);const query=$('search').value.toLowerCase(),elements=[];
+ const focused=document.activeElement?.dataset.control;
  for(const row of rows){if(!row.name.toLowerCase().includes(query))continue;
-  const el=document.createElement('div');el.className='track';const label=document.createElement('span');label.textContent=row.name;
-  const info=document.createElement('small');info.textContent=`${row.notes.length} 音 · 层音量 ${row.volumes.reduce((a,b)=>Math.min(a,b),100)}–${row.volumes.reduce((a,b)=>Math.max(a,b),0)}%`;
-  const single=document.createElement('button');single.textContent='独奏';single.setAttribute('aria-label',`独奏 ${row.name}`);single.setAttribute('aria-pressed',solo.has(row.id));
-  const mute=document.createElement('button');mute.textContent='静音';mute.setAttribute('aria-label',`静音 ${row.name}`);mute.setAttribute('aria-pressed',muted.has(row.id));
-  single.onclick=attempt(async()=>{solo.has(row.id)?solo.delete(row.id):solo.add(row.id);muted.delete(row.id);await player.filter(predicate);renderTracks();draw();});
-  mute.onclick=attempt(async()=>{muted.has(row.id)?muted.delete(row.id):muted.add(row.id);await player.filter(predicate);renderTracks();draw();});
-  el.append(label,info,single,mute);elements.push(el);
+  const audible=row.notes.some(predicate),only=solo.size===1&&solo.has(row.id);
+  const el=document.createElement('div');el.className='track'+(audible?'':' inactive');const label=document.createElement('span');label.className='track-name';label.textContent=row.name;
+  const info=document.createElement('small');info.textContent=`${row.notes.length} 音 · ${row.volumes.reduce((a,b)=>Math.min(a,b),100)}–${row.volumes.reduce((a,b)=>Math.max(a,b),0)}%`;
+  const single=document.createElement('button');single.textContent=only?'恢复全曲':'只听';single.setAttribute('aria-label',`独奏 ${row.name}`);single.setAttribute('aria-pressed',String(only));single.dataset.control='solo:'+row.id;
+  const include=document.createElement('input');include.type='checkbox';include.checked=audible;include.setAttribute('aria-label',`参与播放 ${row.name}`);include.dataset.control='include:'+row.id;
+  single.onclick=attempt(async()=>{solo.clear();muted.clear();if(!only)solo.add(row.id);await player.filter(predicate);renderTracks();draw();});
+  include.onchange=attempt(async()=>{
+   if(solo.size){muted=new Set(rows.filter(r=>!solo.has(r.id)).map(r=>r.id));solo.clear();}
+   include.checked?muted.delete(row.id):muted.add(row.id);await player.filter(predicate);renderTracks();draw();
+  });
+  el.append(label,info,include,single);elements.push(el);
  }
- $('tracks').replaceChildren(...elements);
+ $('tracks').replaceChildren(...elements);renderModes();$('peak').textContent='';
+ if(focused){const next=[...$('tracks').querySelectorAll('[data-control]')].find(el=>el.dataset.control===focused);next?.focus({preventScroll:true});}
 }
 function draw(){
- const canvas=$('roll'),ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);if(!player.song)return;
- const song=player.song,pitches=song.notes.map(n=>n.key-45+(n.instrument<song.vanilla?(NBS.bases[n.instrument]||66):66));
- let lo=128,hi=0;for(const p of pitches){lo=Math.min(lo,p);hi=Math.max(hi,p);}if(!pitches.length){lo=0;hi=1;}
- for(let i=0;i<song.notes.length;i++){const n=song.notes[i];ctx.fillStyle=predicate(n)?`hsl(${(n.instrument*41+65)%360} 65% 65%)`:'#2d3827';ctx.fillRect(n.time/song.duration*canvas.width,12+(hi-pitches[i])/Math.max(1,hi-lo)*(canvas.height-30),Math.max(2,canvas.width/song.duration*.07),3);}
- ctx.fillStyle='#ffffff';ctx.fillRect(player.current()/song.duration*canvas.width,0,1,canvas.height);
+ const canvas=$('roll'),ctx=canvas.getContext('2d');if(!player.song){ctx.clearRect(0,0,canvas.width,canvas.height);return;}
+ const song=player.song,lanes=NBS.groups(song,'instrument'),left=140,right=canvas.width-14,width=right-left;
+ canvas.height=lanes.length*29+30;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.font='13px sans-serif';
+ for(let i=0;i<lanes.length;i++){
+  const lane=lanes[i],top=i*29+7;ctx.fillStyle='#829078';ctx.fillText(lane.name,0,top+13);ctx.fillStyle='#f2f2e7';ctx.fillRect(left,top,width,18);
+  const cells=new Map();for(const n of lane.notes){if(!predicate(n))continue;const cell=Math.floor(n.time*4);cells.set(cell,(cells.get(cell)||0)+1);}
+  for(const [cell,count] of cells){ctx.fillStyle=`rgba(116,143,89,${Math.min(.85,.25+count*.13)})`;ctx.fillRect(left+cell/4/song.duration*width,top,Math.max(2,width/song.duration*.25-1),18);}
+ }
+ ctx.fillStyle='#36553c';ctx.fillRect(left+player.current()/song.duration*width,0,2,lanes.length*29+5);
+ ctx.fillStyle='#9aa28e';ctx.fillText('0:00',left,canvas.height-3);ctx.fillText(format(song.duration),right-38,canvas.height-3);
 }
 async function sha(buffer){
  if(!crypto.subtle)throw Error('Metadata verification requires a secure local browser context');
@@ -71,7 +103,7 @@ $('profile').onchange=attempt(async()=>{const playing=player.playing;player.paus
 $('group').onchange=attempt(async()=>{groupType=$('group').value;solo.clear();muted.clear();await player.filter(predicate);renderTracks();draw();});
 $('reset').onclick=attempt(async()=>{solo.clear();muted.clear();await player.filter(predicate);renderTracks();draw();});
 $('search').oninput=renderTracks;
-$('roll').onclick=attempt(async event=>{if(!player.song)return;const rect=$('roll').getBoundingClientRect();await player.seek((event.clientX-rect.left)/rect.width*player.song.duration);draw();});
+$('roll').onclick=attempt(async event=>{if(!player.song)return;const rect=$('roll').getBoundingClientRect();await player.seek(((event.clientX-rect.left)/rect.width*1200-140)/(1200-154)*player.song.duration);draw();});
 function download(blob,name){const url=URL.createObjectURL(blob),anchor=document.createElement('a');anchor.href=url;anchor.download=name;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),10000);}
 $('download').onclick=()=>{if(selected>=0)download(new Blob([library[selected].buffer]),library[selected].name);};
 $('export').onclick=attempt(async()=>{
@@ -81,12 +113,12 @@ $('export').onclick=attempt(async()=>{
   download(NBSAudio.wav(result.buffer),name+'-selection.wav');status('已在本机生成 WAV，保持当前音量与声部选择。');
  }finally{busy=false;enable();}
 });
-setInterval(()=>{if(!player.song)return;const time=player.current();$('clock').textContent=`${format(time)} / ${format(player.song.duration)}`;$('seek').value=time;$('play').textContent=player.playing?'暂停':'播放';if(player.playing)draw();},100);
+setInterval(()=>{if(!player.song)return;const time=player.current();$('clock').textContent=`${format(time)} / ${format(player.song.duration)}`;$('seek').value=time;$('play').textContent=player.playing?'Ⅱ':'▶';$('play').setAttribute('aria-label',player.playing?'暂停':'播放');if(player.playing)draw();},100);
 attempt(async()=>{
- const boot=window.BOOT||{};if(boot.pack){
+ const boot=window.BOOT||{},pack=boot.pack||window.NBS_SOUNDPACK;if(pack){
   /* 初始解码不自动播放；音频上下文由用户点击后恢复。 */
   const saved=player.contextReady.bind(player);player.contextReady=async()=>{if(!player.context){player.context=new AudioContext();player.master=player.context.createGain();player.master.connect(player.context.destination);}return player.context;};
-  await player.loadPack(boot.pack);player.contextReady=saved;$('pack-state').textContent=`已载入 ${player.bank.size} 个 Minecraft 本地采样`;
+  await player.loadPack(pack);player.contextReady=saved;$('pack-state').textContent=`已载入 ${player.bank.size} 个 Minecraft 本地采样`;
  }
  for(const item of boot.songs||[])await add(item.name,NBSAudio.bytes(item.data),item.meta);
  if(library.length){refreshLists();await select(0);}enable();

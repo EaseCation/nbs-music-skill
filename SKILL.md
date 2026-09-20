@@ -13,7 +13,7 @@ description: 将 Suno 原创器乐、MIDI/WAV 分轨或现成 NBS 制作为可�
 - ZIP/MIDI/WAV 转编配：读 [references/workflow.md](references/workflow.md) 和 [references/schema.md](references/schema.md)。`scripts/toolkit.py` 提供独立命令，所有路径由参数传入；`scripts/render.py` 提供采样响度表与最终NBS离线渲染。
 - NBS 编码、音量、音高问题：读 [references/nbs.md](references/nbs.md)。先确定目标解码器支持的力度、微调与声像；`game` 配置是本次 EC 项目的层音量惯例，不代表所有播放器。
 - 修复局部听感：先读 [references/pitfalls.md](references/pitfalls.md)，从不可变基线做 `focus → patch → encode → diff`。不能仅凭 AI 分轨名或旧的 role 标签定位主旋律。
-- 生成可复用试听集：读 [references/web.md](references/web.md)。纯浏览器解析 NBS、播放采样和导出 WAV；不依赖预渲染 MP3 或后端音频服务。
+- 生成可复用试听集：读 [references/web.md](references/web.md)。纯浏览器解析 NBS、使用内置16种采样播放和导出 WAV；不依赖预渲染 MP3 或后端音频服务。
 
 ## 必须保留的约束
 
