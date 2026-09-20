@@ -1,4 +1,4 @@
 interface:
-  display_name: "Suno 音符盒制作与试听"
+  display_name: "NBS 音乐制作与试听"
   short_description: "从 Suno 提示词、分轨编配到 NBS 层音量编码与纯浏览器试听"
-  default_prompt: "使用 $suno-nbs-skill 将我的音乐分轨制作成 NBS，并生成可直接打开的本地试听页面。"
+  default_prompt: "使用 $nbs-music-toolkit 将我的音乐分轨制作成 NBS，并生成可直接打开的本地试听页面。"

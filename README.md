@@ -1,4 +1,4 @@
-# Suno NBS Skill
+# NBS Music Toolkit
 
 独立的 Codex skill 与工具仓库：Suno 原创器乐提示词、MIDI/WAV预处理、可追溯编配、NBS力度分层、局部修订比对，以及纯浏览器音符盒试听。
 

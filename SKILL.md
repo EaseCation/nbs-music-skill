@@ -1,9 +1,9 @@
 ---
-name: suno-nbs-skill
+name: nbs-music-toolkit
 description: 将 Suno 原创器乐、MIDI/WAV 分轨或现成 NBS 制作为可复核的 Minecraft 音符盒音乐，包括提示词、分轨取舍、音量分层编码、修订比对与浏览器本地试听。适用于歌曲转 NBS 及其试听工具，不用于服务器部署。
 ---
 
-# Suno → NBS
+# NBS 音乐制作工具
 
 目标是交付实际游戏能读、音量写在文件里、可追溯原始音符的 NBS；试听直接读取最终 NBS，不另做一个听起来更响的版本。
 

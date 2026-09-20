@@ -1,5 +1,5 @@
 {
-  "name": "suno-nbs-skill",
+  "name": "nbs-music-toolkit",
   "version": "0.1.0",
   "private": true,
   "description": "Reusable NBS authoring tools and a browser-only review player",
