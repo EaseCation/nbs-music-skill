@@ -28,3 +28,7 @@ npm test
 ```
 
 完整开发依赖可用 `python3 -m pip install -r requirements-dev.txt` 安装（含独立写入校验 pynbs）。测试覆盖实际格式往返、变化tempo、空曲、多力度、层冲突、换音色时实际音高保持、局部diff与格式损坏。浏览器手动验收清单见 `tests/browser-checklist.md`。
+
+## 许可
+
+代码与文档采用 [MIT License](LICENSE)。`web/soundpack.js` 内的 Minecraft 音频采样不属于 MIT 授权范围，其版权与来源见 [采样说明](web/SAMPLES.md)。
